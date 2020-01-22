@@ -9,10 +9,15 @@ const schema = buildSchema(`
   type Pokemon {
     id: String
     name: String!
+    classification: String
+    types: [types]
+  }
+  type types {
+    type: String!
   }
   type Query {
     Pokemons: [Pokemon]
-    Pokemon(name: String!): Pokemon
+    Pokemon(name: String, id: String, type: String): Pokemon
   }
 `);
 
@@ -22,7 +27,12 @@ const root = {
     return data.pokemon;
   },
   Pokemon: (request) => {
-    return data.pokemon.find((pokemon) => pokemon.name === request.name);
+    if (request.name) {
+      return data.pokemon.find((pokemon) => pokemon.name === request.name);
+    }
+    if (request.id) {
+      return data.pokemon.find((pokemon) => pokemon.id === request.id);
+    }
   },
 };
 
