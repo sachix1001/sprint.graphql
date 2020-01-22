@@ -52,12 +52,22 @@ const schema = buildSchema(`
     amount: Int
     name: String
   }
+  type newPokemon {
+    Pokemon: [Pokemon]
+  }
+  type pokemonAttacks {
+    name: String
+    type: String
+    damage: Int
+    Pokemon: [Pokemon]
+  }
   type Query {
     Pokemons: [Pokemon]
     Pokemon(name: String, id: String, type: String): [Pokemon]
     types: [String]
-    type(type: String): String
-    attacks(name: String): [attacks]
+    type(type: String): newPokemon
+    attacks(class: String): attacks
+    attack(name: String!): pokemonAttacks
   }
 
   
@@ -77,9 +87,6 @@ const root = {
       return [data.pokemon.find((pokemon) => pokemon.id === request.id)];
     }
     if (request.type) {
-      // return data.pokemon.filter((pokemon) => {
-      //   return pokemon.types.includes(request.types);
-      // });
       return data.pokemon.filter((pokemon) => {
         return pokemon.types.includes(request.type);
       });
@@ -90,16 +97,49 @@ const root = {
   },
   type: (request) => {
     if (request.type) {
-      return data.types.find((type) => type === request.type);
+      return {
+        Pokemon: data.pokemon.filter((pokemon) => {
+          return pokemon.types.includes(request.type);
+        }),
+      };
     }
-  },
-  attacks: () => {
-    return data.attacks;
   },
   attacks: (request) => {
-    if (request.name) {
-      return data.attacks;
+    if (!request) return data.attacks;
+    if (request.class === "fast") {
+      return { fast: data.attacks.fast };
     }
+    return { special: data.attacks.special };
+  },
+  attack: (request) => {
+    const result = {};
+    result.name = request.name;
+    let attackClass;
+    // eslint-disable-next-line array-callback-return
+    data.attacks.fast.find((attack) => {
+      if (attack.name === request.name) {
+        result.type = attack.type;
+        result.damage = attack.damage;
+        attackClass = "fast";
+      }
+    });
+    if (!attackClass) {
+      // eslint-disable-next-line array-callback-return
+      data.attacks.special.find((attack) => {
+        if (attack.name === request.name) {
+          result.type = attack.type;
+          result.damage = attack.damage;
+          attackClass = "special";
+        }
+      });
+    }
+    const selected = data.pokemon.filter((pokemon) => {
+      return pokemon.attacks.special.find((attack) => {
+        return attack.name === request.name;
+      });
+    });
+    result.Pokemon = selected;
+    return result;
   },
 };
 
