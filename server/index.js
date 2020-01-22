@@ -10,10 +10,30 @@ const schema = buildSchema(`
     id: String
     name: String!
     classification: String
-    types: [types]
+    types: [String]
+    resistant: [String]
+    weaknesses: [String]
+    weight: weights
+    height: heights
+    fleeRate: Float
+    evolutionRequirements: evolutionRequirements
+    evolutions: [evolutions]
   }
-  type types {
-    type: String!
+  type evolutions{
+    id: Int
+    name: String
+  }
+  type weights {
+    minimum: String
+    maximum: String
+  }
+  type heights {
+    minimum: String
+    maximum: String
+  }
+  type evolutionRequirements{
+    amount: Int
+    name: String
   }
   type Query {
     Pokemons: [Pokemon]
