@@ -18,6 +18,23 @@ const schema = buildSchema(`
     fleeRate: Float
     evolutionRequirements: evolutionRequirements
     evolutions: [evolutions]
+    maxCP: Int
+    maxHP: Int
+    attacks: attacks
+  }
+  type attacks{
+    fast: [fast]
+    special: [special]
+  }
+  type fast{
+    name: String
+    type: String
+    damage: Int
+  }
+  type special{
+    name: String
+    type: String
+    damage: Int
   }
   type evolutions{
     id: Int
@@ -37,9 +54,15 @@ const schema = buildSchema(`
   }
   type Query {
     Pokemons: [Pokemon]
-    Pokemon(name: String, id: String, type: String): Pokemon
+    Pokemon(name: String, id: String, type: String): [Pokemon]
+    types: [String]
+    type(type: String): String
+    attacks(name: String): [attacks]
   }
-`);
+
+  
+  
+  `);
 
 // The root provides the resolver functions for each type of query or mutation.
 const root = {
@@ -48,10 +71,34 @@ const root = {
   },
   Pokemon: (request) => {
     if (request.name) {
-      return data.pokemon.find((pokemon) => pokemon.name === request.name);
+      return [data.pokemon.find((pokemon) => pokemon.name === request.name)];
     }
     if (request.id) {
-      return data.pokemon.find((pokemon) => pokemon.id === request.id);
+      return [data.pokemon.find((pokemon) => pokemon.id === request.id)];
+    }
+    if (request.type) {
+      // return data.pokemon.filter((pokemon) => {
+      //   return pokemon.types.includes(request.types);
+      // });
+      return data.pokemon.filter((pokemon) => {
+        return pokemon.types.includes(request.type);
+      });
+    }
+  },
+  types: () => {
+    return data.types;
+  },
+  type: (request) => {
+    if (request.type) {
+      return data.types.find((type) => type === request.type);
+    }
+  },
+  attacks: () => {
+    return data.attacks;
+  },
+  attacks: (request) => {
+    if (request.name) {
+      return data.attacks;
     }
   },
 };
