@@ -8,7 +8,7 @@ const data = require("./data");
 const schema = buildSchema(`
   type Pokemon {
     id: String
-    name: String!
+    name: String
     classification: String
     types: [String]
     resistant: [String]
@@ -22,9 +22,38 @@ const schema = buildSchema(`
     maxHP: Int
     attacks: attacks
   }
+  input inputPokemon {
+    name: String
+    classification: String
+    types: [String]
+    resistant: [String]
+    weaknesses: [String]
+    weight: inputWeights
+    height: inputHeights
+    fleeRate: Float
+    evolutionRequirements: inputEvolutionRequirements
+    evolutions: [inputEvolutions]
+    maxCP: Int
+    maxHP: Int
+    attacks: inputAttacks
+  }
   type attacks{
     fast: [fast]
     special: [special]
+  }
+  input inputAttacks{
+    fast: [inputFast]
+    special: [inputSpecial]
+  }
+  input inputFast{
+    name: String
+    type: String
+    damage: Int
+  }
+  input inputSpecial{
+    name: String
+    type: String
+    damage: Int
   }
   type fast{
     name: String
@@ -40,6 +69,18 @@ const schema = buildSchema(`
     id: Int
     name: String
   }
+  input inputEvolutions{
+    id: Int
+    name: String
+  }
+  input inputWeights {
+    minimum: String
+    maximum: String
+  }
+  input inputHeights {
+    minimum: String
+    maximum: String
+  }
   type weights {
     minimum: String
     maximum: String
@@ -49,6 +90,10 @@ const schema = buildSchema(`
     maximum: String
   }
   type evolutionRequirements{
+    amount: Int
+    name: String
+  }
+  input inputEvolutionRequirements{
     amount: Int
     name: String
   }
@@ -69,10 +114,14 @@ const schema = buildSchema(`
     attacks(class: String): attacks
     attack(name: String!): pokemonAttacks
   }
-
-  
-  
+  type Mutation {
+    createPokemon(input: inputPokemon): Pokemon
+    updatePokemon(name: String!, input: inputPokemon): Pokemon
+    deletePokemon(name: String!): [Pokemon]
+  }
   `);
+//create, Update, Remove Types
+//create, Update, Remove Attacks
 
 // The root provides the resolver functions for each type of query or mutation.
 const root = {
@@ -140,6 +189,29 @@ const root = {
     });
     result.Pokemon = selected;
     return result;
+  },
+  createPokemon: (request) => {
+    const inputIndex = data.pokemon.length + 1;
+    request.input.id = inputIndex;
+    data.pokemon.push(request.input);
+    return data.pokemon[data.pokemon.length - 1];
+  },
+  updatePokemon: (request) => {
+    let changeIndex;
+    data.pokemon.forEach((pokemon, index) => {
+      if (pokemon.name === request.name) {
+        changeIndex = index;
+        for (const key in request.input) {
+          pokemon[key] = request.input[key];
+        }
+      }
+    });
+    return data.pokemon[changeIndex];
+  },
+  deletePokemon: (request) => {
+    return (data.pokemon = data.pokemon.filter((pokemon) => {
+      return !(pokemon.name === request.name);
+    }));
   },
 };
 
