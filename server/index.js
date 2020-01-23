@@ -97,6 +97,9 @@ const schema = buildSchema(`
     amount: Int
     name: String
   }
+  type newTypes {
+    types: [String]
+  }
   type newPokemon {
     Pokemon: [Pokemon]
   }
@@ -118,9 +121,10 @@ const schema = buildSchema(`
     createPokemon(input: inputPokemon): Pokemon
     updatePokemon(name: String!, input: inputPokemon): Pokemon
     deletePokemon(name: String!): [Pokemon]
+    createType(name: String): newTypes
   }
   `);
-//create, Update, Remove Types
+// Update, Remove Types
 //create, Update, Remove Attacks
 
 // The root provides the resolver functions for each type of query or mutation.
@@ -212,6 +216,10 @@ const root = {
     return (data.pokemon = data.pokemon.filter((pokemon) => {
       return !(pokemon.name === request.name);
     }));
+  },
+  createType: (request) => {
+    data.types.push(request.name);
+    return { types: data.types };
   },
 };
 
